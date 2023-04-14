@@ -1,0 +1,37 @@
+version: '3'
+services: 
+  db:
+    image: mongo
+    environment:
+        - MONGO_INITDB_ROOT_USERNAME=admin
+        - MONGO_INITDB_ROOT_PASSWORD=secretpassword
+        - MONGO_INITDB_DATABASE=summary_app
+    volumes:        
+        - ./db-files/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo-js:ro
+        - ./db-files/volumes/mongodb:/data/db
+    ports:
+        - 27017:27017
+    restart: unless-stopped
+    networks:
+        - app-network
+
+  nodeapp: 
+    build: '.'
+    environment:
+        - MONGODB_HOST=db 
+        - MONGODB_PORT=27017
+        - MONGODB_USERNAME=admin
+        - MONGODB_PASSWORD=secretpassword
+        - MONGODB_DATABASE=summary_app
+    ports:
+      - '8080:8080'
+    depends_on:
+            - db  
+    networks:
+            - app-network
+volumes:
+    mongodb:
+        driver: local
+networks:
+    app-network:
+        driver: bridge
